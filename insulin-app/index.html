@@ -248,7 +248,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
     <div class="header-top">
       <div>
         <div class="app-title">حاسبة الأنسولين</div>
-        <div class="app-subtitle">احسب جرعتك بدقة قبل كل وجبة</div>
+        <div class="app-subtitle" style="color:#fbbf24;font-size:11px;line-height:1.5;margin-top:4px">⚠️ هذه الحاسبة تقديرية، تأكد دائماً مع طبيبك أو مختصك الصحي.</div>
       </div>
       <div class="app-icon">💉</div>
     </div>
@@ -739,7 +739,7 @@ function renderResult(r) {
       <div class="rc-icon">⏱️</div>
       <div class="rc-label">جرعة الدهون والبروتين</div>
       <div class="rc-value sm green">${r.fp}</div>
-      <div class="rc-unit">${r.fpu} FPU — تعطى على مدار 3-5 ساعات</div>
+      <div class="rc-unit">${r.fpu} FPU — تعطى بعد 2 - 5 ساعات</div>
     </div>`;
 
   sec.innerHTML = `
@@ -748,13 +748,6 @@ function renderResult(r) {
       <div class="result-badge">✓ محسوبة</div>
     </div>
     <div class="result-grid">
-      <div class="result-card primary">
-        <div class="rc-icon">💉</div>
-        <div class="rc-primary-label">إجمالي الجرعة</div>
-        <div class="rc-primary-value">${r.total}</div>
-        <div class="rc-primary-unit">وحدة دولية (IU)</div>
-        <div class="rc-breakdown">${breakdown}</div>
-      </div>
       <div class="result-card">
         <div class="rc-icon">🌾</div>
         <div class="rc-label">جرعة الوجبة</div>
@@ -768,6 +761,13 @@ function renderResult(r) {
         <div class="rc-unit">IU تصحيح</div>
       </div>
       ${fpCard}
+      <div class="result-card primary">
+        <div class="rc-icon">💉</div>
+        <div class="rc-primary-label">إجمالي الجرعة</div>
+        <div class="rc-primary-value">${r.total}</div>
+        <div class="rc-primary-unit">وحدة دولية (IU)</div>
+        <div class="rc-breakdown">${breakdown}</div>
+      </div>
     </div>
     <div class="warning-card"><span style="font-size:14px;flex-shrink:0">⚠️</span><span>هذه الجرعة تقديرية. تأكد دائماً مع طبيبك أو مختصك الصحي.</span></div>`;
 }
@@ -1084,175 +1084,6 @@ function exportPDF() {
   if (!data.length) return;
   const rows = data.map(h=>`<tr><td>${h.mealName||'—'}</td><td>${h.date||''} ${h.time||''}</td><td>${h.carbs}غ</td><td>${h.protein}غ</td><td>${h.fat}غ</td><td>${h.bg}</td><td><b>${h.total} IU</b></td></tr>`).join('');
   const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;direction:rtl;padding:24px;color:#111}h1{color:#d946a8}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#d946a8;color:white;padding:8px;text-align:right}td{padding:7px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fdf0ff}</style></head><body><h1>سجل حاسبة الأنسولين</h1><p>${periodLabel()} — ${data.length} وجبة</p><table><thead><tr><th>الوجبة</th><th>التاريخ</th><th>كارب</th><th>بروتين</th><th>دهون</th><th>سكر</th><th>الجرعة</th></tr></thead><tbody>${rows}</tbody></table><script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(e => console.log('SW failed:', e));
-  });
-}
-</script>
-</body></html>
-  try {
-    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url,'_blank');
-    if (w) { setTimeout(()=>w.print(),600); }
-    else { throw new Error('blocked'); }
-  } catch(e) {
-    alert('افتح التطبيق في Safari واضغط تصدير PDF مجدداً.');
-  }
-}
-
-// ── AI Food Analysis ──────────────────────────────────────────────
-async function analyzeFood(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  // Show preview
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('preview-img').src = e.target.result;
-    document.getElementById('camera-preview').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-
-  // Show scanning
-  document.getElementById('ai-scanning').style.display = 'flex';
-  document.getElementById('ai-warning').style.display = 'none';
-
-  // Convert to base64
-  const base64 = await new Promise(res => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
-    r.readAsDataURL(file);
-  });
-
-  const mediaType = file.type || 'image/jpeg';
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64 }
-            },
-            {
-              type: 'text',
-              text: 'انظر لهذه الصورة وقدّر الكميات التقريبية بالغرام. أجب فقط بـ JSON بدون أي نص آخر بهذا الشكل: {"carbs":0,"protein":0,"fat":0,"description":"اسم الوجبة باختصار"}'
-            }
-          ]
-        }]
-      })
-    });
-
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
-
-    // Apply values
-    document.getElementById('carbs').value = Math.round(result.carbs) || 0;
-    document.getElementById('protein').value = Math.round(result.protein) || 0;
-    document.getElementById('fat').value = Math.round(result.fat) || 0;
-    if (result.description && !document.getElementById('meal-name').value) {
-      document.getElementById('meal-name').value = result.description;
-    }
-
-    document.getElementById('ai-warning').style.display = 'block';
-  } catch(e) {
-    alert('تعذّر تحليل الصورة. تأكد من الاتصال بالإنترنت وحاول مجدداً.');
-  } finally {
-    document.getElementById('ai-scanning').style.display = 'none';
-    input.value = '';
-  }
-}
-
-// ── Change PIN ────────────────────────────────────────────────────
-let cpStep = 1;
-let cpEntry = '';
-let cpNewPin = '';
-
-function showChangePIN() {
-  cpStep = 1; cpEntry = ''; cpNewPin = '';
-  document.getElementById('cp-step1').style.display = 'flex';
-  document.getElementById('cp-step2').style.display = 'none';
-  document.getElementById('cp-step3').style.display = 'none';
-  document.getElementById('cp-success').style.display = 'none';
-  document.getElementById('cp-error1').textContent = '';
-  document.getElementById('cp-error2').textContent = '';
-  document.getElementById('cp-error3').textContent = '';
-  updateCPDots();
-  document.getElementById('change-pin-modal').style.display = 'flex';
-}
-
-function closeChangePIN() {
-  document.getElementById('change-pin-modal').style.display = 'none';
-  cpEntry = ''; cpStep = 1;
-}
-
-function cpDigit(d) {
-  if (cpEntry.length >= 4) return;
-  cpEntry += d;
-  updateCPDots();
-  if (cpEntry.length === 4) {
-    setTimeout(() => {
-      if (cpStep === 1) {
-        if (cpEntry === CORRECT_PIN) {
-          cpStep = 2; cpEntry = '';
-          document.getElementById('cp-step1').style.display = 'none';
-          document.getElementById('cp-step2').style.display = 'flex';
-        } else {
-          document.getElementById('cp-error1').textContent = '❌ رمز خاطئ';
-          setTimeout(() => { cpEntry = ''; document.getElementById('cp-error1').textContent = ''; updateCPDots(); }, 800);
-        }
-      } else if (cpStep === 2) {
-        cpNewPin = cpEntry;
-        cpStep = 3; cpEntry = '';
-        document.getElementById('cp-step2').style.display = 'none';
-        document.getElementById('cp-step3').style.display = 'flex';
-      } else if (cpStep === 3) {
-        if (cpEntry === cpNewPin) {
-          CORRECT_PIN = cpNewPin;
-          localStorage.setItem('insulin_pin', CORRECT_PIN);
-          document.getElementById('cp-step3').style.display = 'none';
-          document.getElementById('cp-success').style.display = 'flex';
-          setTimeout(() => closeChangePIN(), 1800);
-        } else {
-          document.getElementById('cp-error3').textContent = '❌ الرمز غير متطابق';
-          setTimeout(() => { cpEntry = ''; document.getElementById('cp-error3').textContent = ''; updateCPDots(); }, 800);
-        }
-      }
-      updateCPDots();
-    }, 100);
-  }
-}
-
-function cpDelete() {
-  cpEntry = cpEntry.slice(0,-1);
-  updateCPDots();
-}
-
-function updateCPDots() {
-  const offsets = { 1:0, 2:4, 3:8 };
-  const offset = offsets[cpStep] || 0;
-  for (let i=0; i<4; i++) {
-    const dot = document.getElementById('cp-d'+(offset+i));
-    if (dot) dot.classList.toggle('filled', i < cpEntry.length);
-  }
-}
-
-// Init BG status
-updateBGStatus(130);
-</script>
-<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
