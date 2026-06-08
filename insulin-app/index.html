@@ -6,9 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="حاسبة الأنسولين"/>
-<meta name="theme-color" content="#1a0f1e"/>
-<link rel="manifest" href="/manifest.json"/>
-<link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+<meta name="theme-color" content="#0a0f1e"/>
 <title>حاسبة الأنسولين</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
@@ -287,7 +285,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
 
       <div class="section-label">تحليل الوجبة بالذكاء الاصطناعي</div>
       <button class="camera-btn" onclick="document.getElementById('food-input').click()">
-        📸 صور وحلل وجبتك
+        📸 صور وجبتك وحلل الماكروز تلقائياً
       </button>
       <input type="file" id="food-input" accept="image/*" capture="environment" style="display:none" onchange="analyzeFood(this)"/>
       <div class="camera-preview" id="camera-preview">
@@ -318,7 +316,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
         <div class="macro-block">
           <div class="macro-header">
             <div class="lbl-icon ig">🥩</div>
-            <div><div class="macro-title">البروتين</div><div class="macro-sub">يؤثر على السكر بعد 2 - 4 ساعات</div></div>
+            <div><div class="macro-title">البروتين</div><div class="macro-sub">يؤثر على السكر بعد 3 ساعات</div></div>
           </div>
           <div class="macro-controls">
             <button class="macro-btn" onclick="adj('protein',-5)">−</button>
@@ -362,7 +360,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
         <div class="toggle-row">
           <div class="input-label">
             <div class="lbl-icon ip">⏱️</div>
-            <div><div class="label-text">جرعة الدهون والبروتين</div><div class="label-sub">FPU — تعطى بعد 2 - 5 ساعات</div></div>
+            <div><div class="label-text">جرعة الدهون والبروتين</div><div class="label-sub">FPU — للتأخر في ارتفاع السكر</div></div>
           </div>
           <div class="toggle on" id="tog-fp" onclick="toggleSwitch('fp')"><div class="toggle-thumb"></div></div>
         </div>
@@ -447,10 +445,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
       <div id="settings-content" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:8px">
           <div class="section-label" style="margin:0">إعدادات الأنسولين</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button onclick="showChangePIN()" style="background:rgba(217,70,168,.1);border:1px solid rgba(217,70,168,.3);border-radius:9px;padding:5px 12px;color:var(--blue-light);font-size:11px;font-family:'Tajawal',sans-serif;cursor:pointer;font-weight:600">🔑 تغيير الرمز</button>
-            <button onclick="lockSettings()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:5px 12px;color:#f87171;font-size:11px;font-family:'Tajawal',sans-serif;cursor:pointer;font-weight:600">🔒 قفل</button>
-          </div>
+          <button onclick="lockSettings()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:5px 12px;color:#f87171;font-size:11px;font-family:'Tajawal',sans-serif;cursor:pointer;font-weight:600">🔒 قفل</button>
         </div>
         <div class="settings-card">
           <div class="settings-row">
@@ -502,100 +497,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
     </div>
   </div>
 
-  <!-- Change PIN Modal -->
-  <div id="change-pin-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center;">
-    <div style="background:var(--surface);border-radius:20px;width:88%;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
-      <div style="font-size:32px">🔑</div>
-      <div style="font-size:17px;font-weight:700">تغيير الرمز السري</div>
-
-      <!-- Step 1: old PIN -->
-      <div id="cp-step1" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:13px;color:var(--muted)">أدخل الرمز الحالي</div>
-        <div class="pin-dots" id="cp-dots1">
-          <div class="pin-dot" id="cp-d0"></div>
-          <div class="pin-dot" id="cp-d1"></div>
-          <div class="pin-dot" id="cp-d2"></div>
-          <div class="pin-dot" id="cp-d3"></div>
-        </div>
-        <div class="pin-error" id="cp-error1"></div>
-        <div class="numpad">
-          <button class="np-btn" onclick="cpDigit('1')">1</button>
-          <button class="np-btn" onclick="cpDigit('2')">2</button>
-          <button class="np-btn" onclick="cpDigit('3')">3</button>
-          <button class="np-btn" onclick="cpDigit('4')">4</button>
-          <button class="np-btn" onclick="cpDigit('5')">5</button>
-          <button class="np-btn" onclick="cpDigit('6')">6</button>
-          <button class="np-btn" onclick="cpDigit('7')">7</button>
-          <button class="np-btn" onclick="cpDigit('8')">8</button>
-          <button class="np-btn" onclick="cpDigit('9')">9</button>
-          <button class="np-btn np-empty"></button>
-          <button class="np-btn" onclick="cpDigit('0')">0</button>
-          <button class="np-btn" onclick="cpDelete()">⌫</button>
-        </div>
-      </div>
-
-      <!-- Step 2: new PIN -->
-      <div id="cp-step2" style="width:100%;display:none;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:13px;color:var(--muted)">أدخل الرمز الجديد</div>
-        <div class="pin-dots">
-          <div class="pin-dot" id="cp-d4"></div>
-          <div class="pin-dot" id="cp-d5"></div>
-          <div class="pin-dot" id="cp-d6"></div>
-          <div class="pin-dot" id="cp-d7"></div>
-        </div>
-        <div class="pin-error" id="cp-error2"></div>
-        <div class="numpad">
-          <button class="np-btn" onclick="cpDigit('1')">1</button>
-          <button class="np-btn" onclick="cpDigit('2')">2</button>
-          <button class="np-btn" onclick="cpDigit('3')">3</button>
-          <button class="np-btn" onclick="cpDigit('4')">4</button>
-          <button class="np-btn" onclick="cpDigit('5')">5</button>
-          <button class="np-btn" onclick="cpDigit('6')">6</button>
-          <button class="np-btn" onclick="cpDigit('7')">7</button>
-          <button class="np-btn" onclick="cpDigit('8')">8</button>
-          <button class="np-btn" onclick="cpDigit('9')">9</button>
-          <button class="np-btn np-empty"></button>
-          <button class="np-btn" onclick="cpDigit('0')">0</button>
-          <button class="np-btn" onclick="cpDelete()">⌫</button>
-        </div>
-      </div>
-
-      <!-- Step 3: confirm new PIN -->
-      <div id="cp-step3" style="width:100%;display:none;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:13px;color:var(--muted)">أكد الرمز الجديد</div>
-        <div class="pin-dots">
-          <div class="pin-dot" id="cp-d8"></div>
-          <div class="pin-dot" id="cp-d9"></div>
-          <div class="pin-dot" id="cp-d10"></div>
-          <div class="pin-dot" id="cp-d11"></div>
-        </div>
-        <div class="pin-error" id="cp-error3"></div>
-        <div class="numpad">
-          <button class="np-btn" onclick="cpDigit('1')">1</button>
-          <button class="np-btn" onclick="cpDigit('2')">2</button>
-          <button class="np-btn" onclick="cpDigit('3')">3</button>
-          <button class="np-btn" onclick="cpDigit('4')">4</button>
-          <button class="np-btn" onclick="cpDigit('5')">5</button>
-          <button class="np-btn" onclick="cpDigit('6')">6</button>
-          <button class="np-btn" onclick="cpDigit('7')">7</button>
-          <button class="np-btn" onclick="cpDigit('8')">8</button>
-          <button class="np-btn" onclick="cpDigit('9')">9</button>
-          <button class="np-btn np-empty"></button>
-          <button class="np-btn" onclick="cpDigit('0')">0</button>
-          <button class="np-btn" onclick="cpDelete()">⌫</button>
-        </div>
-      </div>
-
-      <!-- Success -->
-      <div id="cp-success" style="display:none;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:48px">✅</div>
-        <div style="font-size:16px;font-weight:700;color:var(--green)">تم تغيير الرمز بنجاح!</div>
-      </div>
-
-      <button onclick="closeChangePIN()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:'Tajawal',sans-serif;font-size:14px;cursor:pointer;margin-top:4px">إغلاق</button>
-    </div>
-  </div>
-
   <!-- Bottom Nav -->
   <div class="bottom-nav" style="padding-left:8px;padding-right:8px;">
     <button class="nav-btn active" id="nav-calc" onclick="switchTab('calc',null)">
@@ -623,7 +524,7 @@ let history = JSON.parse(localStorage.getItem('insulin_history') || '[]');
 let settings = JSON.parse(localStorage.getItem('insulin_settings') || 'null') || { icr:6, isf:30, target:110 };
 let pinEntry = '';
 let locked = true;
-let CORRECT_PIN = localStorage.getItem('insulin_pin') || '0000';
+const CORRECT_PIN = '0000';
 
 // Apply saved settings to inputs
 document.getElementById('s-icr').value = settings.icr;
@@ -1083,16 +984,7 @@ function exportPDF() {
   const data = filterByPeriod(history, currentPeriod);
   if (!data.length) return;
   const rows = data.map(h=>`<tr><td>${h.mealName||'—'}</td><td>${h.date||''} ${h.time||''}</td><td>${h.carbs}غ</td><td>${h.protein}غ</td><td>${h.fat}غ</td><td>${h.bg}</td><td><b>${h.total} IU</b></td></tr>`).join('');
-  const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;direction:rtl;padding:24px;color:#111}h1{color:#d946a8}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#d946a8;color:white;padding:8px;text-align:right}td{padding:7px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fdf0ff}</style></head><body><h1>سجل حاسبة الأنسولين</h1><p>${periodLabel()} — ${data.length} وجبة</p><table><thead><tr><th>الوجبة</th><th>التاريخ</th><th>كارب</th><th>بروتين</th><th>دهون</th><th>سكر</th><th>الجرعة</th></tr></thead><tbody>${rows}</tbody></table><script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(e => console.log('SW failed:', e));
-  });
-}
-</script>
-</body></html>`;
+  const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;direction:rtl;padding:24px;color:#111}h1{color:#d946a8}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#d946a8;color:white;padding:8px;text-align:right}td{padding:7px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fdf0ff}</style></head><body><h1>سجل حاسبة الأنسولين</h1><p>${periodLabel()} — ${data.length} وجبة</p><table><thead><tr><th>الوجبة</th><th>التاريخ</th><th>كارب</th><th>بروتين</th><th>دهون</th><th>سكر</th><th>الجرعة</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
   try {
     const blob = new Blob([html], {type:'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob);
@@ -1131,30 +1023,14 @@ async function analyzeFood(input) {
   const mediaType = file.type || 'image/jpeg';
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64 }
-            },
-            {
-              type: 'text',
-              text: 'انظر لهذه الصورة وقدّر الكميات التقريبية بالغرام. أجب فقط بـ JSON بدون أي نص آخر بهذا الشكل: {"carbs":0,"protein":0,"fat":0,"description":"اسم الوجبة باختصار"}'
-            }
-          ]
-        }]
-      })
+      body: JSON.stringify({ image: base64, mediaType })
     });
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
+    const text = data.result || '{}';
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
 
@@ -1175,91 +1051,8 @@ async function analyzeFood(input) {
   }
 }
 
-// ── Change PIN ────────────────────────────────────────────────────
-let cpStep = 1;
-let cpEntry = '';
-let cpNewPin = '';
-
-function showChangePIN() {
-  cpStep = 1; cpEntry = ''; cpNewPin = '';
-  document.getElementById('cp-step1').style.display = 'flex';
-  document.getElementById('cp-step2').style.display = 'none';
-  document.getElementById('cp-step3').style.display = 'none';
-  document.getElementById('cp-success').style.display = 'none';
-  document.getElementById('cp-error1').textContent = '';
-  document.getElementById('cp-error2').textContent = '';
-  document.getElementById('cp-error3').textContent = '';
-  updateCPDots();
-  document.getElementById('change-pin-modal').style.display = 'flex';
-}
-
-function closeChangePIN() {
-  document.getElementById('change-pin-modal').style.display = 'none';
-  cpEntry = ''; cpStep = 1;
-}
-
-function cpDigit(d) {
-  if (cpEntry.length >= 4) return;
-  cpEntry += d;
-  updateCPDots();
-  if (cpEntry.length === 4) {
-    setTimeout(() => {
-      if (cpStep === 1) {
-        if (cpEntry === CORRECT_PIN) {
-          cpStep = 2; cpEntry = '';
-          document.getElementById('cp-step1').style.display = 'none';
-          document.getElementById('cp-step2').style.display = 'flex';
-        } else {
-          document.getElementById('cp-error1').textContent = '❌ رمز خاطئ';
-          setTimeout(() => { cpEntry = ''; document.getElementById('cp-error1').textContent = ''; updateCPDots(); }, 800);
-        }
-      } else if (cpStep === 2) {
-        cpNewPin = cpEntry;
-        cpStep = 3; cpEntry = '';
-        document.getElementById('cp-step2').style.display = 'none';
-        document.getElementById('cp-step3').style.display = 'flex';
-      } else if (cpStep === 3) {
-        if (cpEntry === cpNewPin) {
-          CORRECT_PIN = cpNewPin;
-          localStorage.setItem('insulin_pin', CORRECT_PIN);
-          document.getElementById('cp-step3').style.display = 'none';
-          document.getElementById('cp-success').style.display = 'flex';
-          setTimeout(() => closeChangePIN(), 1800);
-        } else {
-          document.getElementById('cp-error3').textContent = '❌ الرمز غير متطابق';
-          setTimeout(() => { cpEntry = ''; document.getElementById('cp-error3').textContent = ''; updateCPDots(); }, 800);
-        }
-      }
-      updateCPDots();
-    }, 100);
-  }
-}
-
-function cpDelete() {
-  cpEntry = cpEntry.slice(0,-1);
-  updateCPDots();
-}
-
-function updateCPDots() {
-  const offsets = { 1:0, 2:4, 3:8 };
-  const offset = offsets[cpStep] || 0;
-  for (let i=0; i<4; i++) {
-    const dot = document.getElementById('cp-d'+(offset+i));
-    if (dot) dot.classList.toggle('filled', i < cpEntry.length);
-  }
-}
-
 // Init BG status
 updateBGStatus(130);
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(e => console.log('SW failed:', e));
-  });
-}
 </script>
 </body>
 </html>
