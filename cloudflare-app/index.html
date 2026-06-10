@@ -1095,6 +1095,65 @@ function exportPDF() {
   }
 }
 
+// ── AI Food Analysis ──────────────────────────────────────────────
+async function analyzeFood(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('camera-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  // Show scanning
+  document.getElementById('ai-scanning').style.display = 'flex';
+  document.getElementById('ai-warning').style.display = 'none';
+
+  // Convert to base64
+  const base64 = await new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.readAsDataURL(file);
+  });
+
+  const mediaType = file.type || 'image/jpeg';
+
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64, mediaType })
+    });
+
+    const data = await response.json();
+    const text = data.result || '{}';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    if (!result.carbs && !result.protein && !result.fat) {
+      throw new Error('empty result');
+    }
+
+    // Apply values
+    document.getElementById('carbs').value = Math.round(result.carbs) || 0;
+    document.getElementById('protein').value = Math.round(result.protein) || 0;
+    document.getElementById('fat').value = Math.round(result.fat) || 0;
+    if (result.description && !document.getElementById('meal-name').value) {
+      document.getElementById('meal-name').value = result.description;
+    }
+
+    document.getElementById('ai-warning').style.display = 'block';
+  } catch(e) {
+    alert('تعذّر تحليل الصورة. تأكد من الاتصال بالإنترنت وحاول مجدداً.');
+  } finally {
+    document.getElementById('ai-scanning').style.display = 'none';
+    input.value = '';
+  }
+}
+
 // Init BG status
 updateBGStatus(130);
 
@@ -1107,4 +1166,4 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 </body>
-</html> 
+</html>
