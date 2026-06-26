@@ -155,6 +155,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
 .np-empty { background:transparent; border:none; cursor:default; }
 
 /* Camera / AI scan */
+.fpu-method-btn { display:flex; align-items:center; gap:10px; width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--card2); color:var(--text); font-family:'Tajawal',sans-serif; cursor:pointer; transition:all .2s; }
+.fpu-method-btn.active { border-color:var(--blue); background:rgba(217,70,168,.1); }
+.fpu-check { width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; color:transparent; flex-shrink:0; transition:all .2s; }
+.fpu-method-btn.active .fpu-check { background:var(--blue); border-color:var(--blue); color:white; }
+.ai-desc { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:'Tajawal',sans-serif; font-size:14px; padding:12px 14px; outline:none; resize:none; line-height:1.6; margin-bottom:12px; }
+.ai-desc:focus { border-color:var(--blue); }
+.ai-desc::placeholder { color:var(--muted); font-size:13px; }
 .camera-btn { width:100%; padding:14px; border-radius:16px; border:1px solid rgba(217,70,168,.4); background:rgba(217,70,168,.08); color:var(--blue-light); font-family:'Tajawal',sans-serif; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:10px; transition:all .2s; }
 .camera-btn:active { background:rgba(217,70,168,.18); transform:scale(.98); }
 .camera-preview { width:100%; border-radius:14px; overflow:hidden; margin-bottom:10px; display:none; position:relative; }
@@ -286,10 +293,17 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
       </div>
 
       <div class="section-label">تحليل الوجبة بالذكاء الاصطناعي</div>
-      <button class="camera-btn" onclick="document.getElementById('food-input').click()">
-        📸 صور وحلل وجبتك
-      </button>
-      <input type="file" id="food-input" accept="image/*" capture="environment" style="display:none" onchange="analyzeFood(this)"/>
+      <textarea class="ai-desc" id="ai-desc" rows="2" placeholder="✏️ اكتب تفاصيل تساعد التحليل (اختياري) — مثال: أرز بسمتي، صدر دجاج مشوي ٢٠٠غ، سلطة بزيت زيتون"></textarea>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <button class="camera-btn" style="margin-bottom:0;flex:1" onclick="document.getElementById('food-camera').click()">
+          📸 تصوير
+        </button>
+        <button class="camera-btn" style="margin-bottom:0;flex:1;border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.08);color:#38bdf8" onclick="document.getElementById('food-gallery').click()">
+          🖼️ من الاستوديو
+        </button>
+      </div>
+      <input type="file" id="food-camera" accept="image/*" capture="environment" style="display:none" onchange="analyzeFood(this)"/>
+      <input type="file" id="food-gallery" accept="image/*" style="display:none" onchange="analyzeFood(this)"/>
       <div class="camera-preview" id="camera-preview">
         <img id="preview-img" src="" alt="صورة الوجبة"/>
       </div>
@@ -467,6 +481,45 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
           </div>
         </div>
 
+        <div class="section-label">طريقة حساب الدهون والبروتين</div>
+        <div class="settings-card">
+          <div style="padding:14px 16px">
+            <div class="sr-sub" style="margin-bottom:12px;line-height:1.7">اختر طريقة تحويل وحدات الدهون والبروتين (FPU) إلى جرعة أنسولين. استشر طبيبك لاختيار الأنسب لك.</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="fpu-method-btn" id="fpu-fixed" onclick="setFPUMethod('fixed')">
+                <div style="text-align:right;flex:1">
+                  <div style="font-weight:700;font-size:14px">ثابتة (متحفظة)</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">1 FPU = وحدة واحدة · الأأمن للبداية</div>
+                </div>
+                <div class="fpu-check">✓</div>
+              </button>
+              <button class="fpu-method-btn" id="fpu-icr" onclick="setFPUMethod('icr')">
+                <div style="text-align:right;flex:1">
+                  <div style="font-weight:700;font-size:14px">مرتبطة بمعامل الكارب (ICR)</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">طريقة Pańkowska الكاملة · جرعات أعلى</div>
+                </div>
+                <div class="fpu-check">✓</div>
+              </button>
+              <button class="fpu-method-btn" id="fpu-custom" onclick="setFPUMethod('custom')">
+                <div style="text-align:right;flex:1">
+                  <div style="font-weight:700;font-size:14px">نسبة مخصصة</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">اضبط النسبة حسب بياناتك الشخصية</div>
+                </div>
+                <div class="fpu-check">✓</div>
+              </button>
+            </div>
+            <div id="fpu-custom-row" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div><div class="sr-label">نسبة الجرعة</div><div class="sr-sub">% من طريقة Pańkowska الكاملة</div></div>
+                <input class="sr-input" type="number" id="s-fpu-pct" value="75" min="10" max="100" step="5" oninput="saveSettings()"/>
+              </div>
+            </div>
+            <div style="margin-top:12px;padding:10px 12px;background:rgba(217,70,168,.08);border-radius:10px;font-size:12px;color:var(--blue-light);line-height:1.6">
+              <span id="fpu-formula-display">المعامل الحالي: كل 1 FPU = 1 وحدة</span>
+            </div>
+          </div>
+        </div>
+
         <div class="section-label">كيفية الحساب</div>
         <div class="settings-card">
           <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px">
@@ -620,7 +673,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px;he
 // ── State ─────────────────────────────────────────────────────────
 let toggles = { correction: true, fp: true };
 let history = JSON.parse(localStorage.getItem('insulin_history') || '[]');
-let settings = JSON.parse(localStorage.getItem('insulin_settings') || 'null') || { icr:6, isf:30, target:110 };
+let settings = JSON.parse(localStorage.getItem('insulin_settings') || 'null') || { icr:6, isf:30, target:110, fpuMethod:'fixed', fpuPct:75 };
+if (!settings.fpuMethod) settings.fpuMethod = 'fixed';
+if (!settings.fpuPct) settings.fpuPct = 75;
 let pinEntry = '';
 let locked = true;
 let CORRECT_PIN = localStorage.getItem('insulin_pin') || '0000';
@@ -687,7 +742,8 @@ function calculate() {
   const mealDose = carbs / icr;
   const correctionDose = toggles.correction ? Math.max(0, (bg - target) / isf) : 0;
   const fpuTotal = (fat * 9 + protein * 4) / 100;
-  const fpDose = toggles.fp ? fpuTotal : 0;
+  const fpuFactor = getFPUFactor();
+  const fpDose = toggles.fp ? fpuTotal * fpuFactor : 0;
   const total = Math.round((mealDose + correctionDose + fpDose) * 2) / 2;
 
   const r = {
@@ -824,7 +880,51 @@ function saveSettings() {
   settings.icr    = parseFloat(document.getElementById('s-icr').value)    || 6;
   settings.isf    = parseFloat(document.getElementById('s-isf').value)    || 30;
   settings.target = parseFloat(document.getElementById('s-target').value) || 110;
+  const pctEl = document.getElementById('s-fpu-pct');
+  if (pctEl) settings.fpuPct = parseFloat(pctEl.value) || 75;
   localStorage.setItem('insulin_settings', JSON.stringify(settings));
+  updateFPUDisplay();
+}
+
+function getFPUFactor() {
+  if (settings.fpuMethod === 'icr') {
+    return 10 / settings.icr;
+  } else if (settings.fpuMethod === 'custom') {
+    return (10 / settings.icr) * (settings.fpuPct / 100);
+  }
+  return 1; // fixed
+}
+
+function setFPUMethod(method) {
+  settings.fpuMethod = method;
+  localStorage.setItem('insulin_settings', JSON.stringify(settings));
+  document.querySelectorAll('.fpu-method-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fpu-' + method).classList.add('active');
+  document.getElementById('fpu-custom-row').style.display = method === 'custom' ? 'block' : 'none';
+  updateFPUDisplay();
+}
+
+function updateFPUDisplay() {
+  const factor = getFPUFactor();
+  const el = document.getElementById('fpu-formula-display');
+  if (!el) return;
+  if (settings.fpuMethod === 'fixed') {
+    el.textContent = 'المعامل الحالي: كل 1 FPU = 1 وحدة';
+  } else if (settings.fpuMethod === 'icr') {
+    el.textContent = 'المعامل الحالي: كل 1 FPU = ' + factor.toFixed(2) + ' وحدة (10 ÷ ' + settings.icr + ')';
+  } else {
+    el.textContent = 'المعامل الحالي: كل 1 FPU = ' + factor.toFixed(2) + ' وحدة (' + settings.fpuPct + '% من Pańkowska)';
+  }
+}
+
+function initFPUSettings() {
+  const m = settings.fpuMethod || 'fixed';
+  const btn = document.getElementById('fpu-' + m);
+  if (btn) btn.classList.add('active');
+  document.getElementById('fpu-custom-row').style.display = m === 'custom' ? 'block' : 'none';
+  const pctEl = document.getElementById('s-fpu-pct');
+  if (pctEl) pctEl.value = settings.fpuPct || 75;
+  updateFPUDisplay();
 }
 
 function lockSettings() {
@@ -1120,12 +1220,13 @@ async function analyzeFood(input) {
   });
 
   const mediaType = file.type || 'image/jpeg';
+  const userDesc = document.getElementById('ai-desc').value.trim();
 
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64, mediaType })
+      body: JSON.stringify({ image: base64, mediaType, description: userDesc })
     });
 
     const data = await response.json();
@@ -1156,6 +1257,7 @@ async function analyzeFood(input) {
 
 // Init BG status
 updateBGStatus(130);
+initFPUSettings();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
